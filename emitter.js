@@ -25,7 +25,7 @@ function getEmitter() {
         on: function (event, context, handler) {
             console.info('ON', event, context, handler);
             this.subscriptions.push({ event, context, handler });
-            console.info(this);
+            // console.info(this);
 
             return this;
         },
@@ -40,18 +40,24 @@ function getEmitter() {
             console.info('OFF', event, context);
             // console.info(this.subscriptions.event);
             // let deleteList = [];
+            // - отписка от `slide.funny` отписывает только от него
+            // - отписка от `slide` отписывает и от `slide`, и от `slide.funny`
 
             this.subscriptions.forEach(function (sub, i) {
                 console.info('OFF1', sub);
-                let eventNum = sub.event.indexOf(event);
-                console.info('OFF2', eventNum);
-                if (eventNum === 0 && context === sub.context) {
-                    let pointer = sub.event[eventNum + event.length];
-                    if (pointer === '.' || pointer === undefined) {
-                        console.info('OFF3', sub.event[eventNum + event.length]);
+                let includeEvent = sub.event.indexOf(event); // indexOf долгая, присвоим 1 раз
+                console.info('OFF2', includeEvent);
+                // проверка вхождения и от slide.funny === slide
+                if (includeEvent === 0 && context === sub.context) {
+                    console.info('OFF22', sub.event[includeEvent + event.length]);
+                    // проверка от slidee === slide
+                    if (sub.event[includeEvent + event.length] === '.' ||
+                    sub.event[includeEvent + event.length] === undefined) {
+                        console.info('OFF3', sub.event[includeEvent + event.length]);
                         delete this.subscriptions[i];
                     }
                 }
+                console.info('OFF4', this.subscriptions);
             }, this);
 
             // let i = 0;
@@ -77,19 +83,31 @@ function getEmitter() {
          */
         emit: function (event) {
             console.info('EMIT', event);
-            let eventList = [event];
-            if (event.indexOf('.') + 1) {
-                let eventLeft = event.split('.');
-                console.info('EMIT1', eventLeft);
-                eventList.push(eventLeft[0]);
-                console.info('EMIT3', eventList);
+            // let eventList = [event];
+            // // console.info('EMIT!', eventList);
+            // if (event.indexOf('.') + 1) {
+            //     let eventLeft = event.split('.');
+            //     // console.info('EMIT1', eventLeft);
+            //     eventList.push(eventLeft[0]);
+            //     // console.info('EMIT3', eventList);
+            // }
+
+            let strEvent = String(event);
+            let eventList = [];
+            for (let i = 0; i < strEvent.length; ++i) {
+                if (strEvent[i] === '.') {
+                    eventList.unshift(strEvent.slice(0, i));
+                }
             }
-            eventList.forEach(function (e) {
-                console.info(e);
+            eventList.unshift(strEvent);
+            console.info('EMIT!!!', eventList);
+
+            eventList.forEach(function (nowEvent) {
+                // console.info(e);
                 this.subscriptions.forEach(function (sub) {
-                    console.info(sub);
-                    if (sub.event === e) {
-                        console.info('yep');
+                    // console.info(sub);
+                    if (sub.event === nowEvent) {
+                        // console.info('yep');
                         sub.handler.call(sub.context);
                     }
                 });
