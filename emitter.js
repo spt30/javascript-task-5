@@ -45,14 +45,10 @@ function getEmitter() {
                 console.info('OFF1', sub);
                 let eventNum = sub.event.indexOf(event);
                 console.info('OFF2', eventNum);
-                if (eventNum === 0) {
-                    if (sub.event[eventNum + event.length] !== '.' &&
-                    sub.event[eventNum + event.length] !== undefined) {
+                if (eventNum === 0 && context === sub.context) {
+                    let pointer = sub.event[eventNum + event.length];
+                    if (pointer === '.' || pointer === undefined) {
                         console.info('OFF3', sub.event[eventNum + event.length]);
-
-                        return 0;
-                    }
-                    if (context === sub.context && eventNum === 0) {
                         delete this.subscriptions[i];
                     }
                 }
