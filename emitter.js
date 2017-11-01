@@ -150,21 +150,21 @@ function getEmitter() {
             //     });
             // }
 
-            for (let i = 0; i < this.subscriptions.length; ++i) {
-                this.on(event, context, function () {
-                    if (i % frequency === 0) {
-                        handler.call(context);
-                    }
-                });
-            }
+            // for (let i = 0; i < this.subscriptions.length; ++i) {
+            //     this.on(event, context, function () {
+            //         if (i % frequency === 0) {
+            //             handler.call(context);
+            //         }
+            //     });
+            // }
 
-            // let count = 0;
-            // this.on(event, context, function () {
-            //     if (count % frequency === 0) {
-            //         handler.call(context);
-            //     }
-            //     count += 1;
-            // });
+            let count = 0;
+            this.on(event, context, function () {
+                if (count % frequency === 0) {
+                    handler.call(context);
+                }
+                count += 1;
+            });
 
             return this;
         }
