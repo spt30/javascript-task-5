@@ -4,7 +4,7 @@
  * Сделано задание на звездочку
  * Реализованы методы several и through
  */
-getEmitter.isStar = false;
+getEmitter.isStar = true;
 module.exports = getEmitter;
 
 /**
@@ -23,9 +23,7 @@ function getEmitter() {
          * @returns {Object}
          */
         on: function (event, context, handler) {
-            console.info('ON', event, context, handler);
             this.subscriptions.push({ event, context, handler });
-            // console.info(this);
 
             return this;
         },
@@ -37,41 +35,37 @@ function getEmitter() {
          * @returns {Object}
          */
         off: function (event, context) {
-            console.info('OFF', event, context);
-            // console.info(this.subscriptions.event);
-            // let deleteList = [];
-            // - отписка от `slide.funny` отписывает только от него
-            // - отписка от `slide` отписывает и от `slide`, и от `slide.funny`
-
+            let deleteList = [];
             this.subscriptions.forEach(function (sub, i) {
-                console.info('OFF1', sub);
-                let includeEvent = sub.event.indexOf(event); // indexOf долгая, присвоим 1 раз
-                console.info('OFF2', includeEvent);
+                // indexOf долгая, присвоим значение 1 раз
+                let includeEvent = sub.event.indexOf(event);
+
                 // проверка вхождения и от slide.funny === slide
                 if (includeEvent === 0 && context === sub.context) {
-                    console.info('OFF22', sub.event[includeEvent + event.length]);
+
                     // проверка от slidee === slide
                     if (sub.event[includeEvent + event.length] === '.' ||
                     sub.event[includeEvent + event.length] === undefined) {
-                        console.info('OFF3', sub.event[includeEvent + event.length]);
-                        delete this.subscriptions[i];
+                        // delete this.subscriptions[i];
+                        deleteList.push(i);
                     }
                 }
                 console.info('OFF4', this.subscriptions);
             }, this);
 
-            // let i = 0;
-            // console.info(this.subscriptions.length);
-            // console.info(deleteList);
-            // while (i < this.subscriptions.length) {
-            //     if (deleteList.indexOf(i) + 1) {
-            //         console.info('11', i);
-            //         this.subscriptions.splice(i, 1);
-            //         deleteList.shift();
-            //     } else {
-            //         i++;
-            //     }
-            // }
+            // можно тоже пока оставить, разберусь, что там не так
+            let i = 0;
+            console.info(this.subscriptions.length);
+            console.info(deleteList);
+            while (i < this.subscriptions.length) {
+                if (deleteList.indexOf(i) + 1) {
+                    console.info('11', i);
+                    this.subscriptions.splice(i, 1);
+                    deleteList.shift();
+                } else {
+                    i++;
+                }
+            }
 
             return this;
         },
@@ -82,16 +76,6 @@ function getEmitter() {
          * @returns {Object}
          */
         emit: function (event) {
-            console.info('EMIT', event);
-            // let eventList = [event];
-            // // console.info('EMIT!', eventList);
-            // if (event.indexOf('.') + 1) {
-            //     let eventLeft = event.split('.');
-            //     // console.info('EMIT1', eventLeft);
-            //     eventList.push(eventLeft[0]);
-            //     // console.info('EMIT3', eventList);
-            // }
-
             let strEvent = String(event);
             let eventList = [];
             for (let i = 0; i < strEvent.length; ++i) {
@@ -100,14 +84,9 @@ function getEmitter() {
                 }
             }
             eventList.unshift(strEvent);
-            console.info('EMIT!!!', eventList);
-
             eventList.forEach(function (nowEvent) {
-                // console.info(e);
                 this.subscriptions.forEach(function (sub) {
-                    // console.info(sub);
                     if (sub.event === nowEvent) {
-                        // console.info('yep');
                         sub.handler.call(sub.context);
                     }
                 });
@@ -123,9 +102,23 @@ function getEmitter() {
          * @param {Object} context
          * @param {Function} handler
          * @param {Number} times – сколько раз получить уведомление
+         * @returns {Object}
          */
         several: function (event, context, handler, times) {
             console.info(event, context, handler, times);
+            if (times > 0) {
+                this.on(event, context, function () {
+                    while (times > 0) {
+                        handler.call(context);
+                        times -= 1;
+                    }
+                });
+            } else {
+                this.on(event, context, handler);
+            }
+
+            return this;
+
         },
 
         /**
@@ -135,9 +128,45 @@ function getEmitter() {
          * @param {Object} context
          * @param {Function} handler
          * @param {Number} frequency – как часто уведомлять
+         * @returns {Object}
          */
         through: function (event, context, handler, frequency) {
-            console.info(event, context, handler, frequency);
+            console.info(event, context, handler, frequency, this.subscriptions.length);
+            // let lghnt = this.subscriptions.length;
+            // let divisior = lghnt % frequency;
+            // divisior = (lghnt - divisior) / frequency;
+            // let dopustim = 0;
+            if (frequency <= 0) {
+                return this.on(event, context, handler);
+            }
+            // for (let j = 1; j <= divisior; ++j) {
+            //     for (let i = 1; i < frequency; ++i) {
+            //         this.on(event, context, function () {
+            //             return 0;
+            //         });
+            //     }
+            //     this.on(event, context, function () {
+            //         handler.call(context);
+            //     });
+            // }
+
+            for (let i = 0; i < this.subscriptions.length; ++i) {
+                this.on(event, context, function () {
+                    if (i % frequency === 0) {
+                        handler.call(context);
+                    }
+                });
+            }
+
+            // let count = 0;
+            // this.on(event, context, function () {
+            //     if (count % frequency === 0) {
+            //         handler.call(context);
+            //     }
+            //     count += 1;
+            // });
+
+            return this;
         }
     };
 }
