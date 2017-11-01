@@ -35,7 +35,7 @@ function getEmitter() {
          * @returns {Object}
          */
         off: function (event, context) {
-            let deleteList = [];
+            // let deleteList = [];
             this.subscriptions.forEach(function (sub, i) {
                 // indexOf долгая, присвоим значение 1 раз
                 let includeEvent = sub.event.indexOf(event);
@@ -46,26 +46,26 @@ function getEmitter() {
                     // проверка от slidee === slide
                     if (sub.event[includeEvent + event.length] === '.' ||
                     sub.event[includeEvent + event.length] === undefined) {
-                        // delete this.subscriptions[i];
-                        deleteList.push(i);
+                        delete this.subscriptions[i];
+                        // deleteList.push(i);
                     }
                 }
                 console.info('OFF4', this.subscriptions);
             }, this);
 
             // можно тоже пока оставить, разберусь, что там не так
-            let i = 0;
-            console.info(this.subscriptions.length);
-            console.info(deleteList);
-            while (i < this.subscriptions.length) {
-                if (deleteList.indexOf(i) + 1) {
-                    console.info('11', i);
-                    this.subscriptions.splice(i, 1);
-                    deleteList.shift();
-                } else {
-                    i++;
-                }
-            }
+            // let i = 0;
+            // console.info(this.subscriptions.length);
+            // console.info(deleteList);
+            // while (i < this.subscriptions.length) {
+            //     if (deleteList.indexOf(i) + 1) {
+            //         console.info('11', i);
+            //         this.subscriptions.splice(i, 1);
+            //         deleteList.shift();
+            //     } else {
+            //         i++;
+            //     }
+            // }
 
             return this;
         },
