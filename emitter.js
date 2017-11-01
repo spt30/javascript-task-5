@@ -35,25 +35,30 @@ function getEmitter() {
          * @returns {Object}
          */
         off: function (event, context) {
+
+            // Это для алгоритма удаления ниже, полагаю, пригодится
             // let deleteList = [];
+
             this.subscriptions.forEach(function (sub, i) {
                 // indexOf долгая, присвоим значение 1 раз
                 let includeEvent = sub.event.indexOf(event);
 
-                // проверка вхождения и от slide.funny === slide
+                // Проверка вхождения и от slide.funny === slide
                 if (includeEvent === 0 && context === sub.context) {
 
-                    // проверка от slidee === slide
+                    // Проверка от slidee === slide
                     if (sub.event[includeEvent + event.length] === '.' ||
                     sub.event[includeEvent + event.length] === undefined) {
                         delete this.subscriptions[i];
+
+                        // Тоже для алгоритма удаления ниже
                         // deleteList.push(i);
                     }
                 }
-                console.info('OFF4', this.subscriptions);
             }, this);
 
-            // можно тоже пока оставить, разберусь, что там не так
+            // Можно тоже пока оставить, разберусь, что там не так
+            // Алгоритм позволяет удалять элементы не во время итерации (не позволяет)
             // let i = 0;
             // console.info(this.subscriptions.length);
             // console.info(deleteList);
@@ -76,6 +81,10 @@ function getEmitter() {
          * @returns {Object}
          */
         emit: function (event) {
+
+            /* Запишем событие как строку, будем посимвольно считывать
+            и, по мере нахождения точек, добавлять все, что "до точки", в массив unshift'ом.
+            В конце добавим сам event*/
             let strEvent = String(event);
             let eventList = [];
             for (let i = 0; i < strEvent.length; ++i) {
@@ -84,6 +93,7 @@ function getEmitter() {
                 }
             }
             eventList.unshift(strEvent);
+
             eventList.forEach(function (nowEvent) {
                 this.subscriptions.forEach(function (sub) {
                     if (sub.event === nowEvent) {
@@ -114,7 +124,7 @@ function getEmitter() {
                     }
                 });
             } else {
-                this.on(event, context, handler);
+                this.on(event, context, handler); // Если times отрицательный
             }
 
             return this;
@@ -131,32 +141,13 @@ function getEmitter() {
          * @returns {Object}
          */
         through: function (event, context, handler, frequency) {
-            console.info(event, context, handler, frequency, this.subscriptions.length);
-            // let lghnt = this.subscriptions.length;
-            // let divisior = lghnt % frequency;
-            // divisior = (lghnt - divisior) / frequency;
-            // let dopustim = 0;
+
+            /* Кажется, можно сделать чуть эффективнее, пока не уверен,
+            несколько алгоритов надо доработать или выкинуть, пока оставлю рабочий*/
             if (frequency <= 0) {
+                // Ругается на глубокий уровень вложенности, вынесу как отдульную проверку
                 return this.on(event, context, handler);
             }
-            // for (let j = 1; j <= divisior; ++j) {
-            //     for (let i = 1; i < frequency; ++i) {
-            //         this.on(event, context, function () {
-            //             return 0;
-            //         });
-            //     }
-            //     this.on(event, context, function () {
-            //         handler.call(context);
-            //     });
-            // }
-
-            // for (let i = 0; i < this.subscriptions.length; ++i) {
-            //     this.on(event, context, function () {
-            //         if (i % frequency === 0) {
-            //             handler.call(context);
-            //         }
-            //     });
-            // }
 
             let count = 0;
             this.on(event, context, function () {
@@ -167,6 +158,27 @@ function getEmitter() {
             });
 
             return this;
+
+            // let lghnt = this.subscriptions.length;
+            // let divisior = lghnt % frequency;
+            // divisior = (lghnt - divisior) / frequency;
+            // divisior*frequency <- подумать насчет него (кратные frequency от 0 до length)
+
+            // добавить нормальный счетчик
+            // for (let j = 1; j <= divisior; ++j) {
+            //     for (let i = 1; i < frequency; ++i) {
+            //     }
+            //     handler.call(context);
+            // }
+
+            // вынести аккуратно this on
+            // for (let i = 0; i < this.subscriptions.length; ++i) {
+            //     this.on(event, context, function () {
+            //         if (i % frequency === 0) {
+            //             handler.call(context);
+            //         }
+            //     });
+            // }
         }
     };
 }
