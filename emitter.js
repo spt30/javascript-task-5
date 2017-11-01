@@ -39,7 +39,7 @@ function getEmitter() {
         off: function (event, context) {
             console.info('OFF', event, context);
             // console.info(this.subscriptions.event);
-            let deleteList = [];
+            // let deleteList = [];
 
             this.subscriptions.forEach(function (sub, i) {
                 console.info('OFF1', sub);
@@ -53,26 +53,23 @@ function getEmitter() {
                         return 0;
                     }
                     if (context === sub.context && eventNum === 0) {
-                        console.info('111');
-                        console.info(deleteList);
-                        deleteList.push(i);
-                        console.info(deleteList);
+                        delete this.subscriptions[i];
                     }
                 }
             }, this);
 
-            let i = 0;
-            console.info(this.subscriptions.length);
-            console.info(deleteList);
-            while (i < this.subscriptions.length) {
-                if (deleteList.indexOf(i) + 1) {
-                    console.info('11', i);
-                    this.subscriptions.splice(i, 1);
-                    deleteList.shift();
-                } else {
-                    i++;
-                }
-            }
+            // let i = 0;
+            // console.info(this.subscriptions.length);
+            // console.info(deleteList);
+            // while (i < this.subscriptions.length) {
+            //     if (deleteList.indexOf(i) + 1) {
+            //         console.info('11', i);
+            //         this.subscriptions.splice(i, 1);
+            //         deleteList.shift();
+            //     } else {
+            //         i++;
+            //     }
+            // }
 
             return this;
         },
