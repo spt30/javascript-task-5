@@ -24,7 +24,7 @@ function getEmitter() {
          */
         on: function (event, context, handler) {
             console.info('ON', event, context, handler);
-            this.subscriptions.push({ e: event, c: context, h: handler });
+            this.subscriptions.push({ event, context, handler });
             console.info(this);
 
             return this;
@@ -38,21 +38,21 @@ function getEmitter() {
          */
         off: function (event, context) {
             console.info('OFF', event, context);
-            // console.info(this.subscriptions.e);
+            // console.info(this.subscriptions.event);
             let deleteList = [];
 
             this.subscriptions.forEach(function (sub, i) {
                 console.info('OFF1', sub);
-                let eventNum = sub.e.indexOf(event);
+                let eventNum = sub.event.indexOf(event);
                 console.info('OFF2', eventNum);
                 if (eventNum === 0) {
-                    if (sub.e[eventNum + event.length] !== '.' &&
-                    sub.e[eventNum + event.length] !== undefined) {
-                        console.info('OFF3', sub.e[eventNum + event.length]);
+                    if (sub.event[eventNum + event.length] !== '.' &&
+                    sub.event[eventNum + event.length] !== undefined) {
+                        console.info('OFF3', sub.event[eventNum + event.length]);
 
                         return 0;
                     }
-                    if (context === sub.c && eventNum === 0) {
+                    if (context === sub.context && eventNum === 0) {
                         console.info('111');
                         console.info(deleteList);
                         deleteList.push(i);
@@ -95,9 +95,9 @@ function getEmitter() {
                 console.info(e);
                 this.subscriptions.forEach(function (sub) {
                     console.info(sub);
-                    if (sub.e === e) {
+                    if (sub.event === e) {
                         console.info('yep');
-                        sub.h.call(sub.c);
+                        sub.handler.call(sub.context);
                     }
                 });
             }, this);
