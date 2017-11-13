@@ -41,14 +41,14 @@ function getEmitter() {
 
             this.subscriptions.forEach(function (sub, i) {
                 // indexOf долгая, присвоим значение 1 раз
-                let includeEvent = sub.event.indexOf(event);
+                let eventStartSymbol = sub.event.indexOf(event);
 
                 // Проверка вхождения и от slide.funny === slide
-                if (includeEvent === 0 && context === sub.context) {
+                if (eventStartSymbol === 0 && context === sub.context) {
 
                     // Проверка от slidee === slide
-                    if (sub.event[includeEvent + event.length] === '.' ||
-                    sub.event[includeEvent + event.length] === undefined) {
+                    let eventLastSymbol = sub.event[eventStartSymbol + event.length];
+                    if (eventLastSymbol === '.' || eventLastSymbol === undefined) {
                         delete this.subscriptions[i];
 
                         // Тоже для алгоритма удаления ниже
@@ -82,17 +82,18 @@ function getEmitter() {
          */
         emit: function (event) {
 
-            /* Запишем событие как строку, будем посимвольно считывать
-            и, по мере нахождения точек, добавлять все, что "до точки", в массив unshift'ом.
+            /* Будем искать от предыдущей найденной точки следующую
+            и добавлять все, что до нее, в массив unshift'ом.
             В конце добавим сам event*/
-            let strEvent = String(event);
             let eventList = [];
-            for (let i = 0; i < strEvent.length; ++i) {
-                if (strEvent[i] === '.') {
-                    eventList.unshift(strEvent.slice(0, i));
-                }
+            // let prevDotIndex = 0;
+            let lastDotIndex = event.indexOf('.');
+            while (lastDotIndex !== -1) {
+                eventList.unshift(event.slice(0, lastDotIndex));
+                // prevDotIndex = lastDotIndex;
+                lastDotIndex = event.indexOf('.', lastDotIndex + 1);
             }
-            eventList.unshift(strEvent);
+            eventList.unshift(event);
 
             eventList.forEach(function (nowEvent) {
                 this.subscriptions.forEach(function (sub) {
@@ -116,16 +117,16 @@ function getEmitter() {
          */
         several: function (event, context, handler, times) {
             console.info(event, context, handler, times);
-            if (times > 0) {
-                this.on(event, context, function () {
-                    while (times > 0) {
-                        handler.call(context);
-                        times -= 1;
-                    }
-                });
-            } else {
-                this.on(event, context, handler); // Если times отрицательный
+            if (times <= 0) {
+                return this.on(event, context, handler);
             }
+
+            this.on(event, context, function () {
+                while (times) {
+                    handler.call(context);
+                    times -= 1;
+                }
+            });
 
             return this;
 
@@ -145,7 +146,6 @@ function getEmitter() {
             /* Кажется, можно сделать чуть эффективнее, пока не уверен,
             несколько алгоритов надо доработать или выкинуть, пока оставлю рабочий*/
             if (frequency <= 0) {
-                // Ругается на глубокий уровень вложенности, вынесу как отдульную проверку
                 return this.on(event, context, handler);
             }
 
