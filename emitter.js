@@ -35,42 +35,20 @@ function getEmitter() {
          * @returns {Object}
          */
         off: function (event, context) {
+            let filtered = this.subscriptions.filter(function (sub) {
+                let eventFirstSymbol = sub.event.indexOf(event);
+                let eventLastSymbol = sub.event[eventFirstSymbol + event.length];
+                if (eventFirstSymbol === 0 && context === sub.context &&
+                    (eventLastSymbol === '.' || eventLastSymbol === undefined)) {
 
-            // Это для алгоритма удаления ниже, полагаю, пригодится
-            // let deleteList = [];
-
-            this.subscriptions.forEach(function (sub, i) {
-                // indexOf долгая, присвоим значение 1 раз
-                let eventStartSymbol = sub.event.indexOf(event);
-
-                // Проверка вхождения и от slide.funny === slide
-                if (eventStartSymbol === 0 && context === sub.context) {
-
-                    // Проверка от slidee === slide
-                    let eventLastSymbol = sub.event[eventStartSymbol + event.length];
-                    if (eventLastSymbol === '.' || eventLastSymbol === undefined) {
-                        delete this.subscriptions[i];
-
-                        // Тоже для алгоритма удаления ниже
-                        // deleteList.push(i);
-                    }
+                    return false;
                 }
+
+                return true;
+
             }, this);
 
-            // Можно тоже пока оставить, разберусь, что там не так
-            // Алгоритм позволяет удалять элементы не во время итерации (не позволяет)
-            // let i = 0;
-            // console.info(this.subscriptions.length);
-            // console.info(deleteList);
-            // while (i < this.subscriptions.length) {
-            //     if (deleteList.indexOf(i) + 1) {
-            //         console.info('11', i);
-            //         this.subscriptions.splice(i, 1);
-            //         deleteList.shift();
-            //     } else {
-            //         i++;
-            //     }
-            // }
+            this.subscriptions = filtered;
 
             return this;
         },
@@ -86,11 +64,9 @@ function getEmitter() {
             и добавлять все, что до нее, в массив unshift'ом.
             В конце добавим сам event*/
             let eventList = [];
-            // let prevDotIndex = 0;
             let lastDotIndex = event.indexOf('.');
             while (lastDotIndex !== -1) {
                 eventList.unshift(event.slice(0, lastDotIndex));
-                // prevDotIndex = lastDotIndex;
                 lastDotIndex = event.indexOf('.', lastDotIndex + 1);
             }
             eventList.unshift(event);
@@ -116,7 +92,6 @@ function getEmitter() {
          * @returns {Object}
          */
         several: function (event, context, handler, times) {
-            console.info(event, context, handler, times);
             if (times <= 0) {
                 return this.on(event, context, handler);
             }
@@ -142,9 +117,6 @@ function getEmitter() {
          * @returns {Object}
          */
         through: function (event, context, handler, frequency) {
-
-            /* Кажется, можно сделать чуть эффективнее, пока не уверен,
-            несколько алгоритов надо доработать или выкинуть, пока оставлю рабочий*/
             if (frequency <= 0) {
                 return this.on(event, context, handler);
             }
@@ -158,27 +130,6 @@ function getEmitter() {
             });
 
             return this;
-
-            // let lghnt = this.subscriptions.length;
-            // let divisior = lghnt % frequency;
-            // divisior = (lghnt - divisior) / frequency;
-            // divisior*frequency <- подумать насчет него (кратные frequency от 0 до length)
-
-            // добавить нормальный счетчик
-            // for (let j = 1; j <= divisior; ++j) {
-            //     for (let i = 1; i < frequency; ++i) {
-            //     }
-            //     handler.call(context);
-            // }
-
-            // вынести аккуратно this on
-            // for (let i = 0; i < this.subscriptions.length; ++i) {
-            //     this.on(event, context, function () {
-            //         if (i % frequency === 0) {
-            //             handler.call(context);
-            //         }
-            //     });
-            // }
         }
     };
 }
